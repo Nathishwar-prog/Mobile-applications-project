@@ -1,0 +1,162 @@
+import 'package:flutter/material.dart';
+
+void main() => runApp(CGPAApp());
+
+class CGPAApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'CGPA Calculator',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: CGPACalculator(),
+    );
+  }
+}
+
+class CGPACalculator extends StatefulWidget {
+  @override
+  _CGPACalculatorState createState() => _CGPACalculatorState();
+}
+
+class _CGPACalculatorState extends State<CGPACalculator> {
+  final List<TextEditingController> _subjectControllers = [];
+  final List<TextEditingController> _creditControllers = [];
+  final List<TextEditingController> _gradeControllers = [];
+  int _subjectCount = 1;
+  double _cgpa = 0.0;
+
+  // Function to calculate CGPA
+  void _calculateCGPA() {
+    double totalCredits = 0.0;
+    double weightedSum = 0.0;
+
+    for (int i = 0; i < _subjectCount; i++) {
+      double credit = double.parse(_creditControllers[i].text);
+      double grade = _gradeToPoint(_gradeControllers[i].text);
+      totalCredits += credit;
+      weightedSum += (credit * grade);
+    }
+
+    setState(() {
+      _cgpa = weightedSum / totalCredits;
+    });
+  }
+
+  // Convert grade to points (O=10, A+=9, A=8, B+=7, B=6, C=5, D=0)
+  double _gradeToPoint(String grade) {
+    switch (grade.toUpperCase()) {
+      case 'O':
+        return 10.0;
+      case 'A+':
+        return 9.0;
+      case 'A':
+        return 8.0;
+      case 'B+':
+        return 7.0;
+      case 'B':
+        return 6.0;
+      case 'C':
+        return 5.0;
+      case 'RA':
+        return 0.0;
+      default:
+        return 0.0;
+    }
+  }
+
+  // Add new subject input fields
+  void _addSubject() {
+    setState(() {
+      _subjectCount++;
+      _subjectControllers.add(TextEditingController());
+      _creditControllers.add(TextEditingController());
+      _gradeControllers.add(TextEditingController());
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _subjectControllers.add(TextEditingController());
+    _creditControllers.add(TextEditingController());
+    _gradeControllers.add(TextEditingController());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('CGPA Calculator'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: <Widget>[
+            Expanded(
+              child: ListView.builder(
+                itemCount: _subjectCount,
+                itemBuilder: (context, index) {
+                  return Column(
+                    children: <Widget>[
+                      TextField(
+                        controller: _subjectControllers[index],
+                        decoration: InputDecoration(
+                          labelText: 'Subject Name',
+                        ),
+                      ),
+                      TextField(
+                        controller: _creditControllers[index],
+                        decoration: InputDecoration(
+                          labelText: 'Credits',
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                      TextField(
+                        controller: _gradeControllers[index],
+                        decoration: InputDecoration(
+                          labelText: 'Grade (O/A+/A/B+/B/C/RA)',
+                        ),
+                      ),
+                      SizedBox(height: 16.0),
+                    ],
+                  );
+                },
+              ),
+            ),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: _addSubject,
+              child: Text('Add Another Subject'),
+            ),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: _calculateCGPA,
+              child: Text('Calculate CGPA'),
+            ),
+            SizedBox(height: 16.0),
+            Text(
+              'Your CGPA: ${_cgpa.toStringAsFixed(2)}',
+              style: TextStyle(fontSize: 24),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    for (var controller in _subjectControllers) {
+      controller.dispose();
+    }
+    for (var controller in _creditControllers) {
+      controller.dispose();
+    }
+    for (var controller in _gradeControllers) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+}
